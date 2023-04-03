@@ -3,6 +3,7 @@ const express = require("express");
 const ejs = require("ejs");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const encrypt = require("mongoose-encryption");
 
 const app = express();
 app.use(express.static("public"));
@@ -14,12 +15,20 @@ mongoose.connect("mongodb://127.0.0.1:27017/userDB");
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
+    unique: true,
     required: [true, "Please check your data entry, no email specified!"],
   },
   password: {
     type: String,
     required: [true, "Please check your data entry, no password specified!"],
   },
+});
+
+const secret = "Thisisourlittlesecret.";
+userSchema.plugin(encrypt, {
+  secret: secret,
+  encryptedFields: ["password"],
+  decryptPostSave: false,
 });
 
 const User = new mongoose.model("User", userSchema);
@@ -36,9 +45,9 @@ app
   .post(function (req, res) {
     const username = req.body.username;
     const password = req.body.password;
-
-    User.findOne({ email: username, password: password })
+    User.find({ email: username, password: password })
       .then((foundUser) => {
+        console.log(foundUser);
         if (foundUser) {
           res.render("secrets");
         } else {
