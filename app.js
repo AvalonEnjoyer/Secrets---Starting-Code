@@ -4,7 +4,7 @@ const express = require("express");
 const ejs = require("ejs");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const encrypt = require("mongoose-encryption");
+const md5 = require("md5");
 
 const app = express();
 
@@ -24,12 +24,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please check your data entry, no password specified!"],
   },
-});
-
-userSchema.plugin(encrypt, {
-  secret: process.env.SECRET,
-  encryptedFields: ["password"],
-  decryptPostSave: false,
 });
 
 const User = new mongoose.model("User", userSchema);
@@ -67,7 +61,7 @@ app
   .post(function (req, res) {
     const newUser = new User({
       email: req.body.username,
-      password: req.body.password,
+      password: md5(req.body.password),
     });
 
     newUser
